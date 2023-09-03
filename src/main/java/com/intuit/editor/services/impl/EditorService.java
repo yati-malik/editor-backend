@@ -11,6 +11,7 @@ import com.intuit.editor.request.EditorContent;
 import com.intuit.editor.services.IEditorService;
 import com.intuit.editor.services.IPatternMatcher;
 import com.intuit.editor.services.IUniqueValueGeneratorService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.Optional;
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Slf4j
 public class EditorService implements IEditorService {
     @Autowired
     private IUniqueValueGeneratorService _uniqueValueGeneratorService;
@@ -39,23 +41,31 @@ public class EditorService implements IEditorService {
         return editorContent;
     }
 
-    public void updateContent(EditorContent editorContent){
+    public ContentEntity updateContent(EditorContent editorContent){
         ContentEntity content = copyEditorContentProperties(editorContent);
         ContentEntity savedEntity = _contentRepository.save(content);
         if(savedEntity == null){
             throw new ContentExceptions(ContentErrors.CONTENT_UPDATION_FAILED);
         }
+        return savedEntity;
     }
 
     public EditorContent createContent(CreateContentModel contentModel){
-        String uniqueId = _uniqueValueGeneratorService.generateUniqueValue();
-        ContentEntity contentEntity =  new ContentEntity();
-        contentEntity.setId(uniqueId);
-        contentEntity.setDTitle(contentModel.getTitle());
-        _contentRepository.save(contentEntity);
-        EditorContent editorContent = new EditorContent();
-        editorContent.setContentId(uniqueId);
-        editorContent.setTitle(contentModel.getTitle());
+        EditorContent editorContent =  null;
+        try {
+            String uniqueId = _uniqueValueGeneratorService.generateUniqueValue();
+            ContentEntity contentEntity = new ContentEntity();
+            contentEntity.setId(uniqueId);
+            contentEntity.setDTitle(contentModel.getTitle());
+            _contentRepository.save(contentEntity);
+            editorContent = new EditorContent();
+            editorContent.setContentId(uniqueId);
+            editorContent.setTitle(contentModel.getTitle());
+        }
+        catch (Exception ex){
+            log.error("[createContent] exception occurred for title: "+ contentModel.getTitle(), ex);
+            throw ex;
+        }
         return editorContent;
     }
 
