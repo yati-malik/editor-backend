@@ -42,8 +42,12 @@ public class EditorService implements IEditorService {
     }
 
     public ContentEntity updateContent(EditorContent editorContent){
-        ContentEntity content = copyEditorContentProperties(editorContent);
-        ContentEntity savedEntity = _contentRepository.save(content);
+        ContentEntity savedContentEntity = _contentRepository.findById(editorContent.getContentId()).orElseThrow(() ->
+                new ContentExceptions(ContentErrors.NOT_FOUND));
+        savedContentEntity.setDTitle(editorContent.getTitle());
+        savedContentEntity.setUpdatedAt(System.currentTimeMillis());
+        savedContentEntity.setDChildren(editorContent.getChildren());
+        ContentEntity savedEntity = _contentRepository.save(savedContentEntity);
         if(savedEntity == null){
             throw new ContentExceptions(ContentErrors.CONTENT_UPDATION_FAILED);
         }
@@ -56,6 +60,7 @@ public class EditorService implements IEditorService {
             String uniqueId = _uniqueValueGeneratorService.generateUniqueValue();
             ContentEntity contentEntity = new ContentEntity();
             contentEntity.setId(uniqueId);
+            contentEntity.setCreatedAt(System.currentTimeMillis());
             contentEntity.setDTitle(contentModel.getTitle());
             _contentRepository.save(contentEntity);
             editorContent = new EditorContent();

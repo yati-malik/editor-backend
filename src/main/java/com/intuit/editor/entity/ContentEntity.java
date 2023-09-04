@@ -20,4 +20,6 @@ public class ContentEntity {
     private String id;
     private String dTitle;
     private List<ContentChild> dChildren;
+    private long createdAt;
+    private long updatedAt;
 }
